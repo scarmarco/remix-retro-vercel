@@ -19,9 +19,11 @@ export default function Card({
           placeholder={placeholder}
         />
       </div>
-      <div>
+      <div className="flex flex-col gap-2">
         {items.map(({ id, text }) => (
-          <div key={id}>{text}</div>
+          <div key={id} className="text-gray-700">
+            {text}
+          </div>
         ))}
       </div>
     </div>
