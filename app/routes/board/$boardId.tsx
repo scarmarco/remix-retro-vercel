@@ -1,4 +1,4 @@
-import { useLoaderData } from "remix";
+import { useLoaderData, json } from "remix";
 import invariant from "tiny-invariant";
 import type { LoaderFunction, ActionFunction } from "remix";
 import type { Board, Comment } from "@prisma/client";
@@ -36,11 +36,11 @@ export const action: ActionFunction = async ({ request, params }) => {
     throw new Error(`Form not submitted correctly.`);
   }
 
-  const comment = await db.comment.create({
+  await db.comment.create({
     data: { text, type, boardId: params.boardId },
   });
 
-  return comment;
+  return json({ ok: true });
 };
 
 export default function BoardRoute() {
