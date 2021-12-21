@@ -22,6 +22,7 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   text      String
+  type      String
   likes     Int      @default(0)
   Board     Board    @relation(fields: [boardId], references: [id])
   boardId   String
