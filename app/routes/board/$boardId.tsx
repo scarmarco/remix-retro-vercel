@@ -1,5 +1,6 @@
 import { useLoaderData, json } from "remix";
 import invariant from "tiny-invariant";
+import { useMemo } from "react";
 import type { LoaderFunction, ActionFunction } from "remix";
 import type { Board, Comment } from "@prisma/client";
 
@@ -43,23 +44,38 @@ export const action: ActionFunction = async ({ request, params }) => {
   return json({ ok: true });
 };
 
+const filterItems = (items: Comment[]) =>
+  items.reduce(
+    (itemsObj: Record<string, Comment[]>, item) => ({
+      ...itemsObj,
+      [item.type]: [...(itemsObj[item.type] || []), item],
+    }),
+    {}
+  );
+
+const columns = [
+  { placeholder: "It worked", type: "worked" },
+  { placeholder: "To improve", type: "improve" },
+  { placeholder: "To ask", type: "ask" },
+  { placeholder: "To do", type: "action" },
+];
+
 export default function BoardRoute() {
   const { board } = useLoaderData<LoaderData>();
 
+  const filteredItems = useMemo(() => filterItems(board.items), [board]);
+
   return (
     <div className="h-full bg-gray-300 flex p-3 gap-3">
-      <div className="flex-1">
-        <Card placeholder="It worked" type="worked" items={board.items} />
-      </div>
-      <div className="flex-1">
-        <Card placeholder="To improve" type="improve" />
-      </div>
-      <div className="flex-1">
-        <Card placeholder="To ask" type="ask" />
-      </div>
-      <div className="flex-1">
-        <Card placeholder="To do" type="action" />
-      </div>
+      {columns.map(({ placeholder, type }) => (
+        <div key={type} className="flex-1">
+          <Card
+            placeholder={placeholder}
+            type={type}
+            items={filteredItems[type]}
+          />
+        </div>
+      ))}
     </div>
   );
 }
