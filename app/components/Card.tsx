@@ -1,6 +1,8 @@
 import { useFetcher } from "remix";
 import { useEffect, useRef } from "react";
 import type { Comment } from "@prisma/client";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 
 export default function Card({
   placeholder,
@@ -39,9 +41,13 @@ export default function Card({
         </comment.Form>
       </div>
       <div className="flex flex-col gap-2">
-        {items.map(({ id, text }) => (
-          <div key={id} className="text-gray-700">
-            {text}
+        {items.map(({ id, text, likes }) => (
+          <div key={id} className="flex justify-between items-center px-2">
+            <span className="text-gray-700">{text}</span>
+            <div className="text-sm text-gray-500">
+              <FontAwesomeIcon icon={faThumbsUp} />
+              <span className="ml-2">{likes}</span>
+            </div>
           </div>
         ))}
       </div>

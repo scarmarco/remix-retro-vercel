@@ -113,7 +113,7 @@ function Document({
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen flex flex-col">
-      <header className="h-14 px-4 py-2 shadow flex justify-between items-center font-semibold text-lg text-gray-900">
+      <header className="h-16 px-4 py-2 shadow flex justify-between items-center font-semibold text-lg text-gray-900">
         <Link to="/">Hive Remix Retrotool</Link>
       </header>
       <main className="flex-1">{children}</main>
