@@ -1,6 +1,8 @@
-import { Form, useSubmit } from "remix";
+import { Form } from "remix";
+import { Fragment } from "react";
 import { Stage } from "@prisma/client";
 import type { Stage as StageKey, Board } from "@prisma/client";
+import cls from "classnames";
 
 const stagesName = {
   [Stage.BRAINSTORMING]: "Brainstorming",
@@ -14,16 +16,19 @@ const Stages = Object.keys(Stage) as StageKey[];
 export default function StagesBar({ board }: { board: Board }) {
   return (
     <div className="h-12 flex items-center px-3 text-gray-700 font-semibold">
-      <div className="flex-1 flex">
+      <div className="flex-1 flex items-center">
         {Stages.map((stageKey) => (
-          <div
-            key={stageKey}
-            className={`mr-4 opacity-20 ${
-              stageKey === board.stage && "opacity-100"
-            }`}
-          >
-            {stagesName[stageKey]}
-          </div>
+          <Fragment key={stageKey}>
+            <div
+              className={cls(
+                { "opacity-20": stageKey !== board.stage },
+                { "opacity-100": stageKey === board.stage }
+              )}
+            >
+              {stagesName[stageKey]}
+            </div>
+            <span className="mx-2 text-gray-400">&gt;</span>
+          </Fragment>
         ))}
       </div>
       <Form action={`/board/${board.id}`} method="put">

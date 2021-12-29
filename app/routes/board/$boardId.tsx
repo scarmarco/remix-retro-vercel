@@ -15,14 +15,20 @@ const Stages = Object.keys(Stage) as StageKey[];
 export const loader: LoaderFunction = async ({ params }) => {
   const board = await db.board.findUnique({
     where: { id: params.boardId },
-    include: {
-      items: true,
+  });
+
+  const comments = await db.comment.findMany({
+    where: { boardId: params.boardId },
+    orderBy: {
+      createdAt: "asc",
     },
   });
 
+  console.log({ comments });
+
   if (!board) throw new Error("Board not found");
 
-  const data: BoardLoader = { board };
+  const data: BoardLoader = { board: { ...board, items: comments } };
   return json(data);
 };
 
@@ -70,15 +76,22 @@ const filterItems = (items: Comment[]) =>
     {}
   );
 
-const columns = [
-  { placeholder: "It worked", type: "worked" },
-  { placeholder: "To improve", type: "improve" },
-  { placeholder: "To ask", type: "ask" },
-  { placeholder: "To do", type: "action" },
-];
-
 export default function BoardRoute() {
   const { board } = useLoaderData<BoardLoader>();
+
+  const columns = useMemo(
+    () => [
+      { placeholder: "It worked", type: "worked" },
+      { placeholder: "To improve", type: "improve" },
+      { placeholder: "To ask", type: "ask" },
+      {
+        placeholder: "To do",
+        type: "action",
+        disabled: board.stage !== Stage.ACTIONS,
+      },
+    ],
+    [board]
+  );
 
   const filteredItems = useMemo(
     () => filterItems((board as BoardWithItems).items),
@@ -89,12 +102,12 @@ export default function BoardRoute() {
     <div className="h-full flex flex-col">
       <StagesBar board={board} />
       <div className="flex-1 bg-gray-300 flex p-3 gap-3">
-        {columns.map(({ placeholder, type }) => (
-          <div key={type} className="flex-1">
+        {columns.map((column) => (
+          <div key={column.type} className="flex-1">
             <Card
-              placeholder={placeholder}
-              type={type}
-              items={filteredItems[type]}
+              board={board}
+              items={filteredItems[column.type]}
+              {...column}
             />
           </div>
         ))}
