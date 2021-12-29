@@ -1,7 +1,7 @@
 import { useFetcher } from "remix";
 import { useEffect, useRef } from "react";
 import cls from "classnames";
-import type { Comment, Board } from "@prisma/client";
+import { Comment, Board, Stage } from "@prisma/client";
 
 import Commentary from "./Comment";
 
@@ -10,18 +10,24 @@ export default function Card({
   type,
   items = [],
   disabled,
+  inputDisabled,
+  hideLikes,
   board,
 }: {
   placeholder: string;
   type: string;
   items?: Comment[];
   disabled?: boolean;
+  inputDisabled?: boolean;
+  hideLikes?: boolean;
   board: Board;
 }) {
   const commentFetcher = useFetcher();
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { id, stage } = board;
+  const isInputDisabled =
+    inputDisabled || commentFetcher.state === "submitting";
 
   useEffect(() => {
     if (commentFetcher.type === "done" && commentFetcher.data.clearForm) {
@@ -33,7 +39,7 @@ export default function Card({
   return (
     <div
       className={cls("h-full bg-white p-3 rounded-lg shadow-sm", {
-        "opacity-50 pointer-events-none": disabled,
+        "opacity-80 pointer-events-none": disabled,
       })}
     >
       <div className="mb-2">
@@ -49,7 +55,7 @@ export default function Card({
             name="comment"
             ref={inputRef}
             placeholder={placeholder}
-            disabled={commentFetcher.state === "submitting"}
+            disabled={isInputDisabled}
             required
           />
           <input type="hidden" name="type" value={type} />
@@ -57,7 +63,12 @@ export default function Card({
       </div>
       <div className="flex flex-col gap-2">
         {items.map((item) => (
-          <Commentary key={item.id} stage={stage} {...item} />
+          <Commentary
+            key={item.id}
+            stage={stage}
+            {...item}
+            hideLikes={hideLikes}
+          />
         ))}
       </div>
     </div>

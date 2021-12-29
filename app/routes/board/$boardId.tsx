@@ -7,7 +7,8 @@ import type { Comment, Stage as StageKey } from "@prisma/client";
 
 import Card from "~/components/Card";
 import { db } from "~/db.server";
-import StagesBar from "../../components/Stages";
+import StagesBar from "~/components/Stages";
+import { getCurrentStage } from "~/utils";
 import type { BoardLoader, BoardWithItems } from "~/types";
 
 const Stages = Object.keys(Stage) as StageKey[];
@@ -23,8 +24,6 @@ export const loader: LoaderFunction = async ({ params }) => {
       createdAt: "asc",
     },
   });
-
-  console.log({ comments });
 
   if (!board) throw new Error("Board not found");
 
@@ -78,16 +77,33 @@ const filterItems = (items: Comment[]) =>
 
 export default function BoardRoute() {
   const { board } = useLoaderData<BoardLoader>();
+  const { isBrainstorming, isAction, isDone } = getCurrentStage(board.stage);
 
   const columns = useMemo(
     () => [
-      { placeholder: "It worked", type: "worked" },
-      { placeholder: "To improve", type: "improve" },
-      { placeholder: "To ask", type: "ask" },
+      {
+        placeholder: "It worked",
+        type: "worked",
+        inputDisabled: !isBrainstorming,
+        disabled: isDone,
+      },
+      {
+        placeholder: "To improve",
+        type: "improve",
+        inputDisabled: !isBrainstorming,
+        disabled: isDone,
+      },
+      {
+        placeholder: "To ask",
+        type: "ask",
+        inputDisabled: !isBrainstorming,
+        disabled: isDone,
+      },
       {
         placeholder: "To do",
         type: "action",
-        disabled: board.stage !== Stage.ACTIONS,
+        disabled: !isAction || isDone,
+        hideLikes: true,
       },
     ],
     [board]
@@ -103,7 +119,7 @@ export default function BoardRoute() {
       <StagesBar board={board} />
       <div className="flex-1 bg-gray-300 flex p-3 gap-3">
         {columns.map((column) => (
-          <div key={column.type} className="flex-1">
+          <div key={column.type} className="flex-1 min-w-0">
             <Card
               board={board}
               items={filteredItems[column.type]}

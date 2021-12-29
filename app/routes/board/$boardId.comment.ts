@@ -5,7 +5,7 @@ import type { ActionFunction } from "remix";
 import { db } from "~/db.server";
 
 export const action: ActionFunction = async ({ request, params }) => {
-  console.log({ request, params });
+  console.log({ request });
   invariant(params.boardId, "Expected params.boardId");
 
   if (request.method === "POST") {
@@ -33,13 +33,13 @@ export const action: ActionFunction = async ({ request, params }) => {
       throw new Error(`Form not submitted correctly.`);
     }
 
-    const comment = await db.comment.update({
+    await db.comment.update({
       where: {
         id: commentId,
       },
       data: { likes: +likes },
     });
 
-    return json({ comment });
+    return json({ voted: true });
   }
 };
