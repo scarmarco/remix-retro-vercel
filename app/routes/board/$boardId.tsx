@@ -117,7 +117,7 @@ export default function BoardRoute() {
   return (
     <div className="h-full flex flex-col">
       <StagesBar board={board} />
-      <div className="flex-1 bg-gray-300 flex p-3 gap-3">
+      <div className="flex-1 min-h-0 bg-gray-300 flex p-3 gap-3">
         {columns.map((column) => (
           <div key={column.type} className="flex-1 min-w-0">
             <Card

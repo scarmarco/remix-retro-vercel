@@ -38,11 +38,11 @@ export default function Card({
 
   return (
     <div
-      className={cls("h-full bg-white p-3 rounded-lg shadow-sm", {
+      className={cls("h-full flex flex-col bg-white p-3 rounded-lg shadow-sm", {
         "opacity-80 pointer-events-none": disabled,
       })}
     >
-      <div className="mb-2">
+      <div className="flex-none mb-2">
         <commentFetcher.Form
           method="post"
           ref={formRef}
@@ -61,15 +61,17 @@ export default function Card({
           <input type="hidden" name="type" value={type} />
         </commentFetcher.Form>
       </div>
-      <div className="flex flex-col gap-2">
-        {items.map((item) => (
-          <Commentary
-            key={item.id}
-            stage={stage}
-            {...item}
-            hideLikes={hideLikes}
-          />
-        ))}
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-2">
+          {items.map((item) => (
+            <Commentary
+              key={item.id}
+              stage={stage}
+              {...item}
+              hideLikes={hideLikes}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

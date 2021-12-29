@@ -18,7 +18,7 @@ const Stages = Object.keys(Stage) as StageKey[];
 export default function StagesBar({ board }: { board: Board }) {
   const { isDone } = getCurrentStage(board.stage);
   return (
-    <div className="h-12 flex items-center px-3 text-gray-700 font-semibold">
+    <div className="h-12 flex-none flex items-center px-3 text-gray-700 font-semibold">
       <div className="flex-1 flex items-center">
         {Stages.map((stageKey, idx) => (
           <Fragment key={stageKey}>
