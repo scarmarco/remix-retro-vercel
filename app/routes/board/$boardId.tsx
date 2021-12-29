@@ -23,11 +23,10 @@ export const loader: LoaderFunction = async ({ params }) => {
   if (!board) throw new Error("Board not found");
 
   const data: BoardLoader = { board };
-  return data;
+  return json(data);
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
-  console.log({ request });
   invariant(params.boardId, "Expected params.boardId");
 
   if (request.method === "POST") {
@@ -47,23 +46,18 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 
   if (request.method === "PUT") {
-    console.log("happens");
     const form = await request.formData();
     const currentStage = form.get("currentStage") as StageKey;
 
     const currentStageIdx = Stages.indexOf(currentStage);
     const nextStage = Stages[currentStageIdx + 1] ?? Stages[Stages.length - 1];
 
-    await db.board.update({
+    const board = await db.board.update({
       where: { id: params.boardId },
       data: { stage: nextStage },
     });
 
-    const board = await db.board.findUnique({
-      where: { id: params.boardId },
-    });
-
-    return json({ ok: true, board });
+    return json({ board });
   }
 };
 
@@ -85,8 +79,6 @@ const columns = [
 
 export default function BoardRoute() {
   const { board } = useLoaderData<BoardLoader>();
-
-  console.log({ board });
 
   const filteredItems = useMemo(
     () => filterItems((board as BoardWithItems).items),

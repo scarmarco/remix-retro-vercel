@@ -1,4 +1,4 @@
-import { useFetcher } from "remix";
+import { Form, useSubmit } from "remix";
 import { Stage } from "@prisma/client";
 import type { Stage as StageKey, Board } from "@prisma/client";
 
@@ -12,17 +12,6 @@ const stagesName = {
 const Stages = Object.keys(Stage) as StageKey[];
 
 export default function StagesBar({ board }: { board: Board }) {
-  const nextStage = useFetcher();
-
-  const handleNextStage = () => {
-    nextStage.submit(
-      {
-        currentStage: board.stage,
-      },
-      { method: "put", action: `/board/${board.id}` }
-    );
-  };
-
   return (
     <div className="h-12 flex items-center px-3 text-gray-700 font-semibold">
       <div className="flex-1 flex">
@@ -37,14 +26,15 @@ export default function StagesBar({ board }: { board: Board }) {
           </div>
         ))}
       </div>
-      <nextStage.Form>
+      <Form action={`/board/${board.id}`} method="put">
+        <input type="hidden" name="currentStage" value={board.stage} />
         <button
           className="border border-gray-800 px-2 py-1 rounded font-semibold"
-          onClick={handleNextStage}
+          type="submit"
         >
           Next stage
         </button>
-      </nextStage.Form>
+      </Form>
     </div>
   );
 }
