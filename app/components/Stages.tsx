@@ -1,11 +1,6 @@
-import { useLoaderData, useFetcher, json } from "remix";
+import { useFetcher } from "remix";
 import { Stage } from "@prisma/client";
-import invariant from "tiny-invariant";
-import type { ActionFunction, LoaderFunction } from "remix";
-import type { Stage as StageKey } from "@prisma/client";
-import type { BoardLoader } from "~/types";
-
-import { db } from "~/db.server";
+import type { Stage as StageKey, Board } from "@prisma/client";
 
 const stagesName = {
   [Stage.BRAINSTORMING]: "Brainstorming",
@@ -16,28 +11,7 @@ const stagesName = {
 
 const Stages = Object.keys(Stage) as StageKey[];
 
-export const action: ActionFunction = async ({ request, params }) => {
-  invariant(params.boardId, "Expected params.boardId");
-  const form = await request.formData();
-  const currentStage = form.get("currentStage") as StageKey;
-
-  const currentStageIdx = Stages.indexOf(currentStage);
-  const nextStage = Stages[currentStageIdx + 1] ?? Stages[Stages.length - 1];
-
-  await db.board.update({
-    where: { id: params.boardId },
-    data: { stage: nextStage },
-  });
-
-  const board = await db.board.findUnique({
-    where: { id: params.boardId },
-  });
-
-  return json({ ok: true, board });
-};
-
-export default function StagesBar() {
-  const { board } = useLoaderData<BoardLoader>();
+export default function StagesBar({ board }: { board: Board }) {
   const nextStage = useFetcher();
 
   const handleNextStage = () => {
@@ -45,7 +19,7 @@ export default function StagesBar() {
       {
         currentStage: board.stage,
       },
-      { method: "post", action: `/board/${board.id}/stages` }
+      { method: "put", action: `/board/${board.id}` }
     );
   };
 
