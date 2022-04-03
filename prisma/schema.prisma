@@ -18,14 +18,17 @@ enum Stage {
 }
 
 model Comment {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   text      String
   type      String
-  likes     Int      @default(0)
-  Board     Board    @relation(fields: [boardId], references: [id])
-  boardId   String
+  likes     Int       @default(0)
+  Board     Board?    @relation(fields: [boardId], references: [id])
+  boardId   String?
+  childrens Comment[] @relation("CommentToComment")
+  Comment   Comment?  @relation("CommentToComment", fields: [commentId], references: [id])
+  commentId String?
 }
 
 model Board {

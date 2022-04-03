@@ -7,8 +7,8 @@ import cls from "classnames";
 import { getCurrentStage } from "~/utils";
 
 const stagesName = {
-  [Stage.BRAINSTORMING]: "Brainstorming",
-  [Stage.VOTE]: "Group and voting",
+  [Stage.BRAINSTORMING]: "Brainstorm",
+  [Stage.VOTE]: "Group and vote",
   [Stage.ACTIONS]: "Write actions",
   [Stage.DONE]: "Done",
 };
@@ -18,9 +18,9 @@ const Stages = Object.keys(Stage) as StageKey[];
 export default function StagesBar({ board }: { board: Board }) {
   const { isDone } = getCurrentStage(board.stage);
   return (
-    <div className="h-12 flex-none flex items-center px-3 text-gray-700 font-semibold">
+    <div className="h-12 flex-none flex items-center px-3 text-gray-700 text-lg font-semibold">
       <div className="flex-1 flex items-center">
-        {Stages.map((stageKey, idx) => (
+        {Stages.map((stageKey) => (
           <Fragment key={stageKey}>
             <div
               className={cls(
@@ -38,7 +38,7 @@ export default function StagesBar({ board }: { board: Board }) {
         <Form action={`/board/${board.id}`} method="put">
           <input type="hidden" name="currentStage" value={board.stage} />
           <button
-            className="border border-gray-800 px-2 py-1 rounded font-semibold"
+            className="border border-gray-800 px-2 py-1 rounded font-semibold hover:ring-1 hover:bg-gray-100 ring-black transition"
             type="submit"
           >
             Next stage

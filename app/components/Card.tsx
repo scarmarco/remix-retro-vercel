@@ -1,9 +1,20 @@
 import { useFetcher } from "remix";
 import { useEffect, useRef } from "react";
 import cls from "classnames";
-import { Comment, Board, Stage } from "@prisma/client";
+import { Board } from "@prisma/client";
 
+import { Comment } from "~/types";
 import Commentary from "./Comment";
+
+type Props = {
+  placeholder: string;
+  type: string;
+  items?: Comment[];
+  disabled?: boolean;
+  inputDisabled?: boolean;
+  hideLikes?: boolean;
+  board: Board;
+};
 
 export default function Card({
   placeholder,
@@ -13,37 +24,28 @@ export default function Card({
   inputDisabled,
   hideLikes,
   board,
-}: {
-  placeholder: string;
-  type: string;
-  items?: Comment[];
-  disabled?: boolean;
-  inputDisabled?: boolean;
-  hideLikes?: boolean;
-  board: Board;
-}) {
-  const commentFetcher = useFetcher();
+}: Props) {
+  const fetcher = useFetcher();
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { id, stage } = board;
-  const isInputDisabled =
-    inputDisabled || commentFetcher.state === "submitting";
+  const isInputDisabled = inputDisabled || fetcher.state === "submitting";
 
   useEffect(() => {
-    if (commentFetcher.type === "done" && commentFetcher.data.clearForm) {
+    if (fetcher.type === "done" && fetcher.data.clearForm) {
       formRef.current?.reset();
       inputRef.current?.focus();
     }
-  }, [commentFetcher]);
+  }, [fetcher]);
 
   return (
     <div
-      className={cls("h-full flex flex-col bg-white p-3 rounded-lg shadow-sm", {
+      className={cls("h-full flex flex-col bg-white rounded-lg shadow-sm", {
         "opacity-80 pointer-events-none": disabled,
       })}
     >
-      <div className="flex-none mb-2">
-        <commentFetcher.Form
+      <div className="flex-none p-3">
+        <fetcher.Form
           method="post"
           ref={formRef}
           action={`/board/${id}/comment`}
@@ -59,16 +61,17 @@ export default function Card({
             required
           />
           <input type="hidden" name="type" value={type} />
-        </commentFetcher.Form>
+        </fetcher.Form>
       </div>
       <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col h-full">
           {items.map((item) => (
             <Commentary
               key={item.id}
               stage={stage}
-              {...item}
               hideLikes={hideLikes}
+              columnType={type}
+              {...item}
             />
           ))}
         </div>

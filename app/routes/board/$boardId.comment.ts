@@ -5,7 +5,6 @@ import type { ActionFunction } from "remix";
 import { db } from "~/db.server";
 
 export const action: ActionFunction = async ({ request, params }) => {
-  console.log({ request });
   invariant(params.boardId, "Expected params.boardId");
 
   if (request.method === "POST") {
@@ -27,19 +26,84 @@ export const action: ActionFunction = async ({ request, params }) => {
   if (request.method === "PUT") {
     const form = await request.formData();
     const commentId = form.get("commentId");
-    const likes = form.get("likes");
+    const type = form.get("type");
+    const childCommentId = form.get("childId");
 
-    if (typeof likes !== "string" || typeof commentId !== "string") {
+    if (typeof type !== "string" || typeof commentId !== "string") {
       throw new Error(`Form not submitted correctly.`);
     }
 
-    await db.comment.update({
-      where: {
-        id: commentId,
-      },
-      data: { likes: +likes },
-    });
+    if (type === "vote") {
+      await db.comment.update({
+        where: {
+          id: commentId,
+        },
+        data: {
+          likes: {
+            increment: 1,
+          },
+        },
+      });
 
-    return json({ voted: true });
+      return json({ voted: true });
+    }
+
+    if (typeof childCommentId === "string") {
+      if (type === "group") {
+        await db.comment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            childrens: {
+              connect: {
+                id: childCommentId,
+              },
+            },
+          },
+        });
+
+        await db.board.update({
+          where: {
+            id: params.boardId,
+          },
+          data: {
+            items: {
+              disconnect: { id: childCommentId },
+            },
+          },
+        });
+
+        return json({ grouped: true });
+      }
+
+      if (type === "ungroup") {
+        await db.comment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            childrens: {
+              disconnect: {
+                id: childCommentId,
+              },
+            },
+          },
+        });
+
+        await db.board.update({
+          where: {
+            id: params.boardId,
+          },
+          data: {
+            items: {
+              connect: { id: childCommentId },
+            },
+          },
+        });
+
+        return json({ ungrouped: true });
+      }
+    }
   }
 };

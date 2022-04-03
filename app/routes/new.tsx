@@ -10,7 +10,3 @@ export let loader: LoaderFunction = async ({ params }) => {
 
   return redirect(`/board/${board.id}`);
 };
-
-export default function NewRoute() {
-  return <div className="h-full">Hi NEW</div>;
-}

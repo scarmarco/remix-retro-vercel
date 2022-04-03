@@ -1,34 +1,66 @@
-import { useLoaderData, json } from "remix";
+import { useLoaderData, useParams, json } from "remix";
 import invariant from "tiny-invariant";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { Stage } from "@prisma/client";
 import type { LoaderFunction, ActionFunction } from "remix";
-import type { Comment, Stage as StageKey } from "@prisma/client";
+import type { Board, Stage as StageKey } from "@prisma/client";
 
+import { Comment } from "~/types";
 import Card from "~/components/Card";
 import { db } from "~/db.server";
 import StagesBar from "~/components/Stages";
 import { getCurrentStage } from "~/utils";
-import type { BoardLoader, BoardWithItems } from "~/types";
+import { usePoll } from "~/hooks";
 
 const Stages = Object.keys(Stage) as StageKey[];
+
+type Payload = {
+  board: Board;
+  commentsByType: ReturnType<typeof filterItems>;
+};
+
+const sortByLikes = (items: Comment[]) =>
+  items.sort((a, b) => b.likes - a.likes);
+
+const filterItems = (items: Comment[]) =>
+  items.reduce(
+    (itemsObj: Record<string, Comment[]>, item) => ({
+      ...itemsObj,
+      [item.type]: [...(itemsObj[item.type] || []), item],
+    }),
+    {}
+  );
 
 export const loader: LoaderFunction = async ({ params }) => {
   const board = await db.board.findUnique({
     where: { id: params.boardId },
-  });
-
-  const comments = await db.comment.findMany({
-    where: { boardId: params.boardId },
-    orderBy: {
-      createdAt: "asc",
+    include: {
+      items: {
+        include: {
+          childrens: true,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
     },
   });
 
   if (!board) throw new Error("Board not found");
 
-  const data: BoardLoader = { board: { ...board, items: comments } };
-  return json(data);
+  const { items, ...plainBoard } = board;
+
+  if (board.stage === "ACTIONS") {
+    const commentsByType = filterItems(sortByLikes(items));
+
+    return json({ board: plainBoard, commentsByType });
+  }
+
+  const commentsByType = filterItems(items);
+
+  return json({ board: plainBoard, commentsByType });
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -66,17 +98,15 @@ export const action: ActionFunction = async ({ request, params }) => {
   }
 };
 
-const filterItems = (items: Comment[]) =>
-  items.reduce(
-    (itemsObj: Record<string, Comment[]>, item) => ({
-      ...itemsObj,
-      [item.type]: [...(itemsObj[item.type] || []), item],
-    }),
-    {}
+export default function BoardRoute() {
+  const params = useParams();
+
+  const loaderData = useLoaderData<Payload>();
+  const { board, commentsByType } = usePoll(
+    `/board/${params.boardId}`,
+    loaderData
   );
 
-export default function BoardRoute() {
-  const { board } = useLoaderData<BoardLoader>();
   const { isBrainstorming, isAction, isDone } = getCurrentStage(board.stage);
 
   const columns = useMemo(
@@ -109,25 +139,22 @@ export default function BoardRoute() {
     [board]
   );
 
-  const filteredItems = useMemo(
-    () => filterItems((board as BoardWithItems).items),
-    [board]
-  );
-
   return (
-    <div className="h-full flex flex-col">
-      <StagesBar board={board} />
-      <div className="flex-1 min-h-0 bg-gray-300 flex p-3 gap-3">
-        {columns.map((column) => (
-          <div key={column.type} className="flex-1 min-w-0">
-            <Card
-              board={board}
-              items={filteredItems[column.type]}
-              {...column}
-            />
-          </div>
-        ))}
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-full flex flex-col">
+        <StagesBar board={board} />
+        <div className="flex-1 min-h-0 bg-gray-300 flex p-3 gap-3">
+          {columns.map((column) => (
+            <div key={column.type} className="flex-1 min-w-0">
+              <Card
+                board={board}
+                items={commentsByType[column.type]}
+                {...column}
+              />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </DndProvider>
   );
 }

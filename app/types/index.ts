@@ -1,7 +1,7 @@
-import type { Board, Comment } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
-export type BoardWithItems = Board & {
-  items: Comment[];
-};
-
-export type BoardLoader = { board: BoardWithItems | Board };
+export type Comment = Prisma.CommentGetPayload<{
+  include: {
+    childrens: true;
+  };
+}>;
