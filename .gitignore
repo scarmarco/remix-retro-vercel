@@ -1,9 +1,9 @@
 node_modules
 .DS_Store
+.env
 
 /.cache
 /build
 /public/build
 /app/tailwind.css
 /prisma/dev.db
-.env
