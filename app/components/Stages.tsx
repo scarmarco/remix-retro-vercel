@@ -38,7 +38,7 @@ export default function StagesBar({ board }: { board: Board }) {
         <Form action={`/board/${board.id}`} method="put">
           <input type="hidden" name="currentStage" value={board.stage} />
           <button
-            className="border border-gray-800 px-2 py-1 rounded font-semibold hover:ring-1 hover:bg-gray-100 ring-black transition"
+            className="border border-gray-800 px-2 py-1 rounded text-sm font-semibold hover:ring-1 hover:bg-gray-100 ring-black transition"
             type="submit"
           >
             Next stage
