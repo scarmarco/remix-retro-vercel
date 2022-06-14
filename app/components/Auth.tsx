@@ -28,7 +28,7 @@ export default function Auth() {
           </form>
         </div>
       )}
-      {user.type === "done" && !!!user.data && (
+      {user.type === "done" && !user.data && (
         <Form
           className="h-full flex justify-center items-center"
           action="/auth/google"
