@@ -35,7 +35,12 @@ model Board {
   id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  owner     String
   team      String?
   stage     Stage     @default(BRAINSTORMING)
   items     Comment[]
+}
+
+model User {
+  email String @id
 }

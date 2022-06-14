@@ -10,6 +10,7 @@ import {
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
 
 import styles from "./tailwind.css";
+import Auth from "./components/Auth";
 
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: styles }];
@@ -47,6 +48,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     <div className="h-screen flex flex-col">
       <header className="h-16 flex-none px-4 py-2 shadow flex justify-between items-center font-semibold text-xl text-gray-900">
         <Link to="/">Hive Remix Retrotool</Link>
+        <Auth />
       </header>
       <main className="flex-1 min-h-0">{children}</main>
       <footer className="h-12 flex-none px-4 py-2 shadow flex justify-center items-center font-semibold border border-gray-100">
