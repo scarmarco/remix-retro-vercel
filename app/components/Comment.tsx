@@ -1,4 +1,4 @@
-import { useFetcher, useParams } from "remix";
+import { useFetcher, useParams } from "@remix-run/react";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { Stage } from "@prisma/client";

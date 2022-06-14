@@ -1,4 +1,4 @@
-import { Form } from "remix";
+import { Form } from "@remix-run/react";
 import { Fragment } from "react";
 import { Stage } from "@prisma/client";
 import type { Stage as StageKey, Board } from "@prisma/client";

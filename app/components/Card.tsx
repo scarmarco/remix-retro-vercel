@@ -1,4 +1,4 @@
-import { useFetcher } from "remix";
+import { useFetcher } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 import cls from "classnames";
 import { Board } from "@prisma/client";

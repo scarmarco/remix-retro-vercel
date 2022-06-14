@@ -1,10 +1,11 @@
-import { useLoaderData, useParams, json } from "remix";
+import { useLoaderData, useParams } from "@remix-run/react";
+import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
 import { useMemo, useCallback } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Stage } from "@prisma/client";
-import type { LoaderFunction, ActionFunction } from "remix";
+import type { LoaderFunction, ActionFunction } from "@remix-run/node";
 import type { Board, Stage as StageKey } from "@prisma/client";
 
 import { Comment } from "~/types";

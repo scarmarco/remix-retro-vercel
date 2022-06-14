@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useFetcher } from "remix";
+import { useFetcher } from "@remix-run/react";
 
 export function usePoll<T>(endpoint: string, initialData: T) {
   const fetcher = useFetcher();

@@ -1,4 +1,4 @@
-import { useFetcher, useParams } from "remix";
+import { useFetcher, useParams } from "@remix-run/react";
 import { useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLongArrowAltLeft } from "@fortawesome/free-solid-svg-icons";
