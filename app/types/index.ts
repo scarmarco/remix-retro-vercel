@@ -5,3 +5,7 @@ export type Comment = Prisma.CommentGetPayload<{
     childrens: true;
   };
 }>;
+
+export type User = {
+  email: string;
+};
