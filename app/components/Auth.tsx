@@ -1,5 +1,5 @@
+import { Form, useFetcher } from "@remix-run/react";
 import { useEffect } from "react";
-import { Form, useFetcher } from "remix";
 
 export default function Auth() {
   const user = useFetcher();

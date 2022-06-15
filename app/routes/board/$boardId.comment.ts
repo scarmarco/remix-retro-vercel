@@ -1,7 +1,5 @@
-import { json } from "remix";
+import { ActionFunction, json } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import type { ActionFunction } from "remix";
-
 import { db } from "~/db.server";
 
 export const action: ActionFunction = async ({ request, params }) => {
