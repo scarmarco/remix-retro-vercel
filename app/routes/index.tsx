@@ -15,7 +15,7 @@ export let loader: LoaderFunction = async ({ request }) => {
   const data: LoaderData = {
     boards: await db.board.findMany({
       select: { id: true },
-      where: { owner: user.email },
+      where: { owner: user },
     }),
   };
 

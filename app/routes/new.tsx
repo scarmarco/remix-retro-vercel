@@ -8,7 +8,7 @@ export let loader: LoaderFunction = async ({ request }) => {
   });
   const board = await db.board.create({
     data: {
-      owner: user.email,
+      userEmail: user.email,
     },
   });
 
