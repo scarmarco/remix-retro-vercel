@@ -12,14 +12,20 @@ export let loader: LoaderFunction = async ({ request }) => {
     failureRedirect: "/login",
   });
 
-  const data: LoaderData = {
-    boards: await db.board.findMany({
+  try {
+    const boards = await db.board.findMany({
       select: { id: true },
       where: { owner: user },
-    }),
-  };
+    });
 
-  return json(data);
+    const data: LoaderData = {
+      boards,
+    };
+
+    return json(data);
+  } catch (error) {
+    return json({ boards: [] });
+  }
 };
 
 export default function IndexRoute() {
@@ -38,7 +44,7 @@ export default function IndexRoute() {
       <ul>
         {data.boards.map((board) => (
           <li className="mx-2" key={board.id}>
-            <Link to={"/board/" + board.id}>{board.id}</Link>
+            <Link to={`/board/${board.id}`}>{board.id}</Link>
           </li>
         ))}
       </ul>

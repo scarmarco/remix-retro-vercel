@@ -1,11 +1,13 @@
 import { ActionFunction, json } from "@remix-run/node";
 import invariant from "tiny-invariant";
 import { db } from "~/db.server";
+import { sendMessage } from "~/services/board.server";
 
 export const action: ActionFunction = async ({ request, params }) => {
   invariant(params.boardId, "Expected params.boardId");
 
   if (request.method === "POST") {
+    console.log("comment POST");
     const form = await request.formData();
     const text = form.get("comment");
     const type = form.get("type");
@@ -18,7 +20,9 @@ export const action: ActionFunction = async ({ request, params }) => {
       data: { text, type, boardId: params.boardId },
     });
 
-    return json({ clearForm: true });
+    sendMessage(text, type);
+
+    return null;
   }
 
   if (request.method === "PUT") {

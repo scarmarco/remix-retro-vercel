@@ -1,4 +1,4 @@
-import { useFetcher } from "@remix-run/react";
+import { Form, useTransition } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 import cls from "classnames";
 import { Board } from "@prisma/client";
@@ -25,18 +25,21 @@ export default function Card({
   hideLikes,
   board,
 }: Props) {
-  const fetcher = useFetcher();
+  const transition = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { id, stage } = board;
-  const isInputDisabled = inputDisabled || fetcher.state === "submitting";
+  const isInputDisabled = inputDisabled || transition.state === "submitting";
 
   useEffect(() => {
-    if (fetcher.type === "done" && fetcher.data.clearForm) {
+    if (
+      transition.state === "loading" &&
+      transition.submission?.formData.get("type") === type
+    ) {
       formRef.current?.reset();
       inputRef.current?.focus();
     }
-  }, [fetcher]);
+  }, [transition.state]);
 
   return (
     <div
@@ -45,11 +48,12 @@ export default function Card({
       })}
     >
       <div className="flex-none p-3">
-        <fetcher.Form
+        <Form
           method="post"
           ref={formRef}
-          action={`/board/${id}/comment`}
+          action={`/board/${id}`}
           autoComplete="off"
+          replace
         >
           <input
             className="w-full border border-gray-300 rounded px-2 py-1"
@@ -61,7 +65,7 @@ export default function Card({
             required
           />
           <input type="hidden" name="type" value={type} />
-        </fetcher.Form>
+        </Form>
       </div>
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col h-full">

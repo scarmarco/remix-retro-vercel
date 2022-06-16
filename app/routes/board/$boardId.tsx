@@ -1,7 +1,7 @@
 import { useLoaderData, useParams } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import { useMemo, useCallback } from "react";
+import { useMemo, useEffect } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Stage } from "@prisma/client";
@@ -11,6 +11,7 @@ import type { Board, Stage as StageKey } from "@prisma/client";
 import { Comment } from "~/types";
 import Card from "~/components/Card";
 import { db } from "~/db.server";
+import { sendMessage } from "~/services/board.server";
 import StagesBar from "~/components/Stages";
 import { getCurrentStage } from "~/utils";
 import { usePoll } from "~/hooks";
@@ -80,7 +81,9 @@ export const action: ActionFunction = async ({ request, params }) => {
       data: { text, type, boardId: params.boardId },
     });
 
-    return json({ ok: true });
+    sendMessage(text, type);
+
+    return null;
   }
 
   if (request.method === "PUT") {
@@ -107,6 +110,18 @@ export default function BoardRoute() {
     `/board/${params.boardId}`,
     loaderData
   );
+
+  useEffect(() => {
+    const eventSource = new EventSource(`/board/${params.boardId}/events`);
+
+    eventSource.addEventListener("message", (event) => {
+      console.log({ event });
+      const data = JSON.parse(event.data);
+      console.log(data);
+    });
+
+    return () => eventSource.close();
+  }, []);
 
   const { isBrainstorming, isAction, isDone } = getCurrentStage(board.stage);
 

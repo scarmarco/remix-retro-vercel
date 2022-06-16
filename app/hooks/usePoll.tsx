@@ -12,7 +12,7 @@ export function usePoll<T>(endpoint: string, initialData: T) {
       if (document.visibilityState === "visible") {
         fetcher.load(endpoint);
       }
-    }, 2000);
+    }, 2000000);
 
     return () => clearInterval(interval);
   }, []);

@@ -3,10 +3,7 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { Stage } from "@prisma/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faThumbsUp,
-  faLongArrowAltLeft,
-} from "@fortawesome/free-solid-svg-icons";
+import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import cls from "classnames";
 
 import { getCurrentStage } from "~/utils";
