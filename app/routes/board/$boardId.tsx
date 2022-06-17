@@ -1,7 +1,7 @@
-import { useLoaderData, useParams } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Stage } from "@prisma/client";
@@ -11,15 +11,18 @@ import type { Board, Stage as StageKey } from "@prisma/client";
 import { Comment } from "~/types";
 import Card from "~/components/Card";
 import { db } from "~/db.server";
+import { authenticator } from "~/services/auth.server";
+import { changeStage } from "~/services/board.server";
 import StagesBar from "~/components/Stages";
 import { getCurrentStage } from "~/utils";
-import { usePoll } from "~/hooks";
+import { useBoardEvents } from "~/hooks";
 
 const Stages = Object.keys(Stage) as StageKey[];
 
-type Payload = {
+export type Payload = {
   board: Board;
   commentsByType: ReturnType<typeof filterItems>;
+  owner: string;
 };
 
 const sortByLikes = (items: Comment[]) =>
@@ -34,7 +37,11 @@ const filterItems = (items: Comment[]) =>
     {}
   );
 
-export const loader: LoaderFunction = async ({ params }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: "/login",
+  });
+
   const board = await db.board.findUnique({
     where: { id: params.boardId },
     include: {
@@ -56,12 +63,20 @@ export const loader: LoaderFunction = async ({ params }) => {
   if (board.stage === "ACTIONS") {
     const commentsByType = filterItems(sortByLikes(items));
 
-    return json({ board: plainBoard, commentsByType });
+    return json({
+      board: plainBoard,
+      commentsByType,
+      owner: user.email,
+    });
   }
 
   const commentsByType = filterItems(items);
 
-  return json({ board: plainBoard, commentsByType });
+  return json({
+    board: plainBoard,
+    commentsByType,
+    owner: user.email,
+  });
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -79,30 +94,16 @@ export const action: ActionFunction = async ({ request, params }) => {
       data: { stage: nextStage },
     });
 
+    changeStage(nextStage);
+
     return json({ board });
   }
 };
 
 export default function BoardRoute() {
-  const params = useParams();
-
   const loaderData = useLoaderData<Payload>();
-  const { board, commentsByType } = usePoll(
-    `/board/${params.boardId}`,
-    loaderData
-  );
 
-  useEffect(() => {
-    const eventSource = new EventSource(`/board/${params.boardId}/events`);
-
-    eventSource.addEventListener("message", (event) => {
-      console.log({ event });
-      const data = JSON.parse(event.data);
-      console.log(data);
-    });
-
-    return () => eventSource.close();
-  }, []);
+  const { board, commentsByType } = useBoardEvents(loaderData);
 
   const { isBrainstorming, isAction, isDone } = getCurrentStage(board.stage);
 
@@ -139,13 +140,17 @@ export default function BoardRoute() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-full flex flex-col">
-        <StagesBar board={board} />
+        <StagesBar
+          board={board}
+          isOwner={loaderData.owner === board.userEmail}
+        />
         <div className="flex-1 min-h-0 bg-gray-300 flex p-3 gap-3">
           {columns.map((column) => (
             <div key={column.type} className="flex-1 min-w-0">
               <Card
                 board={board}
                 items={commentsByType[column.type]}
+                owner={loaderData.owner}
                 {...column}
               />
             </div>

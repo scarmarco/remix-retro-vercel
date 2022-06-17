@@ -1,65 +1,91 @@
 import type { LoaderFunction } from "@remix-run/node";
+import { Comment } from "@prisma/client";
 import { events } from "~/services/board.server";
+import { eventType } from "~/utils";
 
 export const loader: LoaderFunction = async ({ request }) => {
   if (!request.signal) return new Response(null, { status: 500 });
-  // const user = await getSessionUser(request)
 
   return new Response(
     new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
-        // const handleComment = ({ user, message }: ChatMessage) => {
-        //   console.log("message", { user, message });
-        //   controller.enqueue(encoder.encode("event: message\n"));
-        //   controller.enqueue(
-        //     encoder.encode(`data: ${JSON.stringify({ user, message })}\n\n`)
-        //   );
-        // };
 
-        const handleComment = (user: { text: string; type: string }) => {
-          console.log("new comment", { user });
-          controller.enqueue(encoder.encode("event: message\n"));
+        const handleNewComment = (comment: Comment) => {
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ user })}\n\n`)
+            encoder.encode(`event: ${eventType.NEW_COMMENT}\n`)
+          );
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(comment)}\n\n`)
           );
         };
 
-        // const handleUserLeft = (user: string) => {
-        //   console.log("user left", { user });
-        //   controller.enqueue(encoder.encode("event: user-left\n"));
-        //   controller.enqueue(encoder.encode(`data: ${user}\n\n`));
-        // };
+        const handleGroupComment = (comment: Comment, childrenId: string) => {
+          controller.enqueue(
+            encoder.encode(`event: ${eventType.GROUP_COMMENT}\n`)
+          );
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ comment, childrenId })}\n\n`
+            )
+          );
+        };
+
+        const handleUngroupComment = (comment: Comment, childrenId: string) => {
+          controller.enqueue(
+            encoder.encode(`event: ${eventType.UNGROUP_COMMENT}\n`)
+          );
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ comment, childrenId })}\n\n`
+            )
+          );
+        };
+
+        const handleLikeComment = (comment: Comment) => {
+          controller.enqueue(
+            encoder.encode(`event: ${eventType.LIKE_COMMENT}\n`)
+          );
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(comment)}\n\n`)
+          );
+        };
+
+        const handleChangeStage = (stage: string) => {
+          controller.enqueue(
+            encoder.encode(`event: ${eventType.CHANGE_STAGE}\n`)
+          );
+          controller.enqueue(encoder.encode(`data: ${stage}\n\n`));
+        };
 
         let closed = false;
         const close = () => {
-          console.log("stream closed");
           if (closed) return;
           closed = true;
 
-          events.removeListener("message", handleComment);
-          // chat.removeListener("user-joined", handleUserJoined);
-          // chat.removeListener("user-left", handleUserLeft);
+          events.removeListener(eventType.NEW_COMMENT, handleNewComment);
+          events.removeListener(eventType.GROUP_COMMENT, handleGroupComment);
+          events.removeListener(
+            eventType.UNGROUP_COMMENT,
+            handleUngroupComment
+          );
+          events.removeListener(eventType.LIKE_COMMENT, handleLikeComment);
+          events.removeListener(eventType.CHANGE_STAGE, handleChangeStage);
           request.signal.removeEventListener("abort", close);
           controller.close();
-
-          // removeUser(user);
         };
 
-        events.addListener("message", handleComment);
-        // chat.addListener("user-joined", handleUserJoined);
-        // chat.addListener("user-left", handleUserLeft);
+        events.addListener(eventType.NEW_COMMENT, handleNewComment);
+        events.addListener(eventType.GROUP_COMMENT, handleGroupComment);
+        events.addListener(eventType.UNGROUP_COMMENT, handleUngroupComment);
+        events.addListener(eventType.LIKE_COMMENT, handleLikeComment);
+        events.addListener(eventType.CHANGE_STAGE, handleChangeStage);
         request.signal.addEventListener("abort", close);
 
         if (request.signal.aborted) {
           close();
           return;
         }
-
-        // if (!doesUserExist(user)) {
-        //   addUser(user);
-        //   console.log("users", getUsers());
-        // }
       },
     }),
     { headers: { "Content-Type": "text/event-stream" } }

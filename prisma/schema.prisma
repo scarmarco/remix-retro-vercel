@@ -29,6 +29,8 @@ model Comment {
   childrens Comment[] @relation("CommentToComment")
   Comment   Comment?  @relation("CommentToComment", fields: [commentId], references: [id])
   commentId String?
+  owner     User      @relation(fields: [userEmail], references: [email])
+  userEmail String
 }
 
 model Board {
@@ -43,6 +45,7 @@ model Board {
 }
 
 model User {
-  email String  @id
-  Board Board[]
+  email   String    @id
+  Board   Board[]
+  Comment Comment[]
 }
