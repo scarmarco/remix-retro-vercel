@@ -8,3 +8,11 @@ export function getCurrentStage(stage: Stage) {
     isDone: stage === Stage.DONE,
   };
 }
+
+export const eventType = {
+  NEW_COMMENT: "new-comment",
+  GROUP_COMMENT: "group-comment",
+  UNGROUP_COMMENT: "ungroup-comment",
+  LIKE_COMMENT: "like-comment",
+  CHANGE_STAGE: "change-stage",
+};

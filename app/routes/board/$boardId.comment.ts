@@ -1,9 +1,19 @@
 import { ActionFunction, json } from "@remix-run/node";
 import invariant from "tiny-invariant";
 import { db } from "~/db.server";
+import { authenticator } from "~/services/auth.server";
+import {
+  newComment,
+  groupComment,
+  ungroupComment,
+  likeComment,
+} from "~/services/board.server";
 
 export const action: ActionFunction = async ({ request, params }) => {
   invariant(params.boardId, "Expected params.boardId");
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: "/login",
+  });
 
   if (request.method === "POST") {
     const form = await request.formData();
@@ -14,9 +24,12 @@ export const action: ActionFunction = async ({ request, params }) => {
       throw new Error(`Form not submitted correctly.`);
     }
 
-    await db.comment.create({
-      data: { text, type, boardId: params.boardId },
+    const comment = await db.comment.create({
+      data: { text, type, boardId: params.boardId, userEmail: user.email },
+      include: { childrens: true },
     });
+
+    newComment(comment);
 
     return json({ clearForm: true });
   }
@@ -32,7 +45,7 @@ export const action: ActionFunction = async ({ request, params }) => {
     }
 
     if (type === "vote") {
-      await db.comment.update({
+      const comment = await db.comment.update({
         where: {
           id: commentId,
         },
@@ -41,14 +54,17 @@ export const action: ActionFunction = async ({ request, params }) => {
             increment: 1,
           },
         },
+        include: { childrens: true },
       });
+
+      likeComment(comment);
 
       return json({ voted: true });
     }
 
     if (typeof childCommentId === "string") {
       if (type === "group") {
-        await db.comment.update({
+        const comment = await db.comment.update({
           where: {
             id: commentId,
           },
@@ -58,6 +74,9 @@ export const action: ActionFunction = async ({ request, params }) => {
                 id: childCommentId,
               },
             },
+          },
+          include: {
+            childrens: true,
           },
         });
 
@@ -72,11 +91,13 @@ export const action: ActionFunction = async ({ request, params }) => {
           },
         });
 
+        groupComment(comment, childCommentId);
+
         return json({ grouped: true });
       }
 
       if (type === "ungroup") {
-        await db.comment.update({
+        const comment = await db.comment.update({
           where: {
             id: commentId,
           },
@@ -86,6 +107,9 @@ export const action: ActionFunction = async ({ request, params }) => {
                 id: childCommentId,
               },
             },
+          },
+          include: {
+            childrens: true,
           },
         });
 
@@ -99,6 +123,8 @@ export const action: ActionFunction = async ({ request, params }) => {
             },
           },
         });
+
+        ungroupComment(comment, childCommentId);
 
         return json({ ungrouped: true });
       }

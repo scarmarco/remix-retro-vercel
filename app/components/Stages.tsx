@@ -15,7 +15,13 @@ const stagesName = {
 
 const Stages = Object.keys(Stage) as StageKey[];
 
-export default function StagesBar({ board }: { board: Board }) {
+export default function StagesBar({
+  board,
+  isOwner,
+}: {
+  board: Board;
+  isOwner: boolean;
+}) {
   const { isDone } = getCurrentStage(board.stage);
   return (
     <div className="h-12 flex-none flex items-center px-3 text-gray-700 text-lg font-semibold">
@@ -34,7 +40,7 @@ export default function StagesBar({ board }: { board: Board }) {
           </Fragment>
         ))}
       </div>
-      {!isDone && (
+      {!isDone && isOwner && (
         <Form action={`/board/${board.id}`} method="put">
           <input type="hidden" name="currentStage" value={board.stage} />
           <button

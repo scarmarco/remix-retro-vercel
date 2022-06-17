@@ -14,6 +14,7 @@ type Props = {
   inputDisabled?: boolean;
   hideLikes?: boolean;
   board: Board;
+  owner: string;
 };
 
 export default function Card({
@@ -24,6 +25,7 @@ export default function Card({
   inputDisabled,
   hideLikes,
   board,
+  owner,
 }: Props) {
   const fetcher = useFetcher();
   const formRef = useRef<HTMLFormElement>(null);
@@ -71,6 +73,7 @@ export default function Card({
               stage={stage}
               hideLikes={hideLikes}
               columnType={type}
+              owner={owner}
               {...item}
             />
           ))}

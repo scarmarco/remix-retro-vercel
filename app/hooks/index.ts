@@ -1,1 +1,1 @@
-export * from "./usePoll";
+export * from "./useBoardEvents";

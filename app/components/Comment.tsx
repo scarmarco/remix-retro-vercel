@@ -3,10 +3,7 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { Stage } from "@prisma/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faThumbsUp,
-  faLongArrowAltLeft,
-} from "@fortawesome/free-solid-svg-icons";
+import { faThumbsUp } from "@fortawesome/free-solid-svg-icons";
 import cls from "classnames";
 
 import { getCurrentStage } from "~/utils";
@@ -16,6 +13,7 @@ import ChildComment from "./ChildComment";
 type Props = Comment & {
   stage: Stage;
   columnType: string;
+  owner: string;
   hideLikes?: boolean;
 };
 
@@ -26,6 +24,8 @@ export default function Comment({
   stage,
   columnType,
   childrens,
+  owner,
+  userEmail,
   hideLikes = false,
 }: Props) {
   const ref = useRef(null);
@@ -36,14 +36,17 @@ export default function Comment({
 
   const canDrag = isVoting && !childrens.length;
 
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: columnType,
-    item: () => ({ id }),
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: columnType,
+      item: { id },
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+      canDrag: () => canDrag,
     }),
-    canDrag: () => canDrag,
-  }));
+    [canDrag]
+  );
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: columnType,
@@ -88,7 +91,15 @@ export default function Comment({
       })}
     >
       <div className="flex justify-between items-center">
-        <p className="text-gray-700 text-lg overflow-hidden">{text}</p>
+        {isBrainstorming && owner !== userEmail && (
+          <div className="w-3/4 h-4 bg-gray-200 overflow-hidden rounded"></div>
+        )}
+        {isBrainstorming && owner === userEmail && (
+          <p className="text-gray-700 text-lg overflow-hidden">{text}</p>
+        )}
+        {!isBrainstorming && (
+          <p className="text-gray-700 text-lg overflow-hidden">{text}</p>
+        )}
         {!isBrainstorming && !hideLikes && (
           <div
             className={cls(
