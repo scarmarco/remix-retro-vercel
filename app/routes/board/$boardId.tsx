@@ -11,7 +11,6 @@ import type { Board, Stage as StageKey } from "@prisma/client";
 import { Comment } from "~/types";
 import Card from "~/components/Card";
 import { db } from "~/db.server";
-import { sendMessage } from "~/services/board.server";
 import StagesBar from "~/components/Stages";
 import { getCurrentStage } from "~/utils";
 import { usePoll } from "~/hooks";
@@ -67,24 +66,6 @@ export const loader: LoaderFunction = async ({ params }) => {
 
 export const action: ActionFunction = async ({ request, params }) => {
   invariant(params.boardId, "Expected params.boardId");
-
-  if (request.method === "POST") {
-    const form = await request.formData();
-    const text = form.get("comment");
-    const type = form.get("type");
-
-    if (typeof text !== "string" || typeof type !== "string") {
-      throw new Error(`Form not submitted correctly.`);
-    }
-
-    await db.comment.create({
-      data: { text, type, boardId: params.boardId },
-    });
-
-    sendMessage(text, type);
-
-    return null;
-  }
 
   if (request.method === "PUT") {
     const form = await request.formData();

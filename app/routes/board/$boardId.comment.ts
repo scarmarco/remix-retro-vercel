@@ -22,7 +22,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 
     sendMessage(text, type);
 
-    return null;
+    return json({ clearForm: true });
   }
 
   if (request.method === "PUT") {

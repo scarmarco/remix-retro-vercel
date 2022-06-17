@@ -19,6 +19,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
         const handleComment = (user: { text: string; type: string }) => {
           console.log("new comment", { user });
+          controller.enqueue(encoder.encode("event: message\n"));
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ user })}\n\n`)
           );
@@ -32,6 +33,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
         let closed = false;
         const close = () => {
+          console.log("stream closed");
           if (closed) return;
           closed = true;
 
