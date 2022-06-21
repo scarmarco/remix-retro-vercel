@@ -1,29 +1,31 @@
-// app/services/auth.server.ts
-
 import { Authenticator } from "remix-auth";
-import { GoogleStrategy } from "remix-auth-google";
+import { GoogleStrategy } from "remix-auth-socials";
 import { sessionStorage } from "~/services/session.server";
 import { User } from "~/types";
 import { db } from "~/db.server";
 
-// Create an instance of the authenticator, pass a generic with what
-// strategies will return and will store in the session
-export let authenticator = new Authenticator<User>(sessionStorage);
+export const authenticator = new Authenticator<User>(sessionStorage);
 
-let googleStrategy = new GoogleStrategy(
+const googleStrategy = new GoogleStrategy(
   {
-    clientID: process.env.GOOGLE_CLIENT_ID || "",
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    clientID: process.env.GOOGLE_CLIENT_ID as string,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     callbackURL: "http://localhost:3000/auth/google/callback",
   },
-  async ({ accessToken, refreshToken, extraParams, profile }) => {
-    // Get the user data from your DB or API using the tokens and profile
+  async ({ profile }) => {
     const userEmail = profile.emails[0].value;
-    return db.user.upsert({
+    const picture = profile.photos[0].value;
+    const user = await db.user.upsert({
       where: { email: userEmail },
-      create: { email: userEmail },
+      create: {
+        email: userEmail,
+        name: profile.displayName,
+        picture,
+      },
       update: {},
     });
+
+    return user;
   }
 );
 

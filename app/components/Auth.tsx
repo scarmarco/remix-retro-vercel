@@ -1,44 +1,72 @@
-import { Form, useFetcher } from "@remix-run/react";
-import { useEffect } from "react";
+import { useMemo } from "react";
+import { Form, Link } from "@remix-run/react";
+import cls from "classnames";
+import { User } from "~/types";
+import Dropdown from "~/components/Dropdown";
 
-export default function Auth() {
-  const user = useFetcher();
+type Props = {
+  user: User;
+};
 
-  useEffect(() => {
-    if (user.type === "init") {
-      user.load("/auth/user");
-    }
-  }, [user]);
-
-  return (
-    <div className="text-base">
-      {user.type !== "done" && "Loading"}
-      {user.type === "done" && user.data?.email && (
-        <div className="flex flex-row">
-          <div className="mx-2 flex flex-col justify-center">
-            {user.data.email}
-          </div>
-          <form action="/logout" method="post">
-            <button
-              type="submit"
-              className="bg-white hover:ring ring-black text-black text-center py-2 px-4 rounded-lg border transition"
-            >
-              Logout
-            </button>
-          </form>
-        </div>
-      )}
-      {user.type === "done" && !user.data && (
-        <Form
-          className="h-full flex justify-center items-center"
-          action="/auth/google"
-          method="post"
+export default function Auth({ user }: Props) {
+  const items = useMemo(
+    () => [
+      (active: boolean) => (
+        <div
+          className={cls(
+            " block w-full text-left px-4 py-2 text-sm text-gray-700 border-b",
+            {
+              "bg-gray-100 text-gray-900": active,
+            }
+          )}
         >
-          <button className="bg-white hover:ring ring-black text-black text-center py-2 px-4 rounded-lg border transition">
-            Login
+          <b>Signed in as:</b> <br />
+          {user.name}
+        </div>
+      ),
+      (active: boolean) => (
+        <Link
+          to="/"
+          className={cls(
+            " block w-full text-left px-4 py-2 text-sm text-gray-700 ",
+            {
+              "bg-gray-100 text-gray-900": active,
+            }
+          )}
+        >
+          Dashboard
+        </Link>
+      ),
+      (active: boolean) => (
+        <Form action="/logout" method="post" replace>
+          <button
+            className={cls(
+              "block w-full text-left px-4 py-2 text-sm text-gray-700",
+              {
+                "bg-gray-100 text-gray-900": active,
+              }
+            )}
+            type="submit"
+          >
+            Logout
           </button>
         </Form>
-      )}
+      ),
+    ],
+    [user]
+  );
+
+  return (
+    <div>
+      <Dropdown items={items}>
+        <img
+          src={user.picture}
+          width="42"
+          height="42"
+          alt="profile picture"
+          className="rounded-full hover:ring-1 ring-black transition"
+        />
+      </Dropdown>
     </div>
   );
 }

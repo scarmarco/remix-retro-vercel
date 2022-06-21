@@ -2,12 +2,15 @@ import { json, LoaderFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { db } from "~/db.server";
 import { authenticator } from "~/services/auth.server";
+import Layout from "~/components/Layout";
+import { User } from "~/types";
 
 type LoaderData = {
   boards: { id: string }[];
+  user: User;
 };
 
-export let loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request }) => {
   const user = await authenticator.isAuthenticated(request, {
     failureRedirect: "/login",
   });
@@ -20,39 +23,42 @@ export let loader: LoaderFunction = async ({ request }) => {
 
     const data: LoaderData = {
       boards,
+      user,
     };
 
     return json(data);
   } catch (error) {
-    return json({ boards: [] });
+    return json({ boards: [], user });
   }
 };
 
 export default function IndexRoute() {
-  const data = useLoaderData<LoaderData>();
+  const { boards, user } = useLoaderData<LoaderData>();
 
   return (
-    <div className="h-full flex justify-between px-8 py-6">
-      <div>
-        {!!data.boards.length && (
-          <h2 className="text-xl mb-2">Existing Boards:</h2>
-        )}
-        <ul className="flex flex-col gap-2">
-          {data.boards.map((board) => (
-            <li key={board.id}>
-              <Link to={`/board/${board.id}`}>{board.id}</Link>
-            </li>
-          ))}
-        </ul>
+    <Layout user={user}>
+      <div className="h-full flex justify-between px-8 py-6">
+        <div>
+          {!!boards.length && (
+            <h2 className="text-xl mb-2">Existing Boards:</h2>
+          )}
+          <ul className="flex flex-col gap-2">
+            {boards.map((board) => (
+              <li key={board.id}>
+                <Link to={`/board/${board.id}`}>{board.id}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <Link
+            to="/new"
+            className="bg-white hover:ring ring-black text-black text-center py-2 px-4 rounded-lg border transition"
+          >
+            Start new retro
+          </Link>
+        </div>
       </div>
-      <div>
-        <Link
-          to="/new"
-          className="bg-white hover:ring ring-black text-black text-center py-2 px-4 rounded-lg border transition"
-        >
-          Start new retro
-        </Link>
-      </div>
-    </div>
+    </Layout>
   );
 }

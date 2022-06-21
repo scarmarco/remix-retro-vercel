@@ -46,6 +46,8 @@ model Board {
 
 model User {
   email   String    @id
+  name    String
+  picture String
   Board   Board[]
   Comment Comment[]
 }
