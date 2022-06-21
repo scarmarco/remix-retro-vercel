@@ -65,6 +65,7 @@ export default function Auth({ user }: Props) {
           height="42"
           alt="profile picture"
           className="rounded-full hover:ring-1 ring-black transition"
+          draggable="false"
         />
       </Dropdown>
     </div>

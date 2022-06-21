@@ -26,8 +26,8 @@ export default function Dropdown({ items, children }: Props) {
       >
         <Menu.Items className="z-50 origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
           <div className="py-1">
-            {items.map((item) => (
-              <Menu.Item>{({ active }) => item(active)}</Menu.Item>
+            {items.map((item, idx) => (
+              <Menu.Item key={idx}>{({ active }) => item(active)}</Menu.Item>
             ))}
           </div>
         </Menu.Items>
