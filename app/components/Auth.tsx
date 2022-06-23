@@ -59,14 +59,16 @@ export default function Auth({ user }: Props) {
   return (
     <div>
       <Dropdown items={items}>
-        <img
-          src={user.picture}
-          width="42"
-          height="42"
-          alt="profile picture"
-          className="rounded-full hover:ring-1 ring-black transition"
-          draggable="false"
-        />
+        <div className="w-[42px] h-[42px]">
+          <img
+            src={user.picture}
+            width="42"
+            height="42"
+            alt="profile picture"
+            className="rounded-full hover:ring-1 ring-black transition"
+            draggable="false"
+          />
+        </div>
       </Dropdown>
     </div>
   );
