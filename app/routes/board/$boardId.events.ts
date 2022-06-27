@@ -2,7 +2,7 @@ import type { LoaderFunction } from "@remix-run/node";
 import { Comment } from "@prisma/client";
 import invariant from "tiny-invariant";
 import { EventEmitter } from "node:events";
-import { events } from "~/services/board.server";
+import { events, initializeBoardEmitter } from "~/services/board.server";
 import { eventType } from "~/utils";
 
 export const loader: LoaderFunction = async ({ request, params }) => {
@@ -15,6 +15,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
+
+        initializeBoardEmitter(boardId);
 
         const handleNewComment = (comment: Comment) => {
           controller.enqueue(
@@ -96,10 +98,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
           request.signal.removeEventListener("abort", close);
           controller.close();
         };
-
-        if (!events[boardId]) {
-          events[boardId] = new EventEmitter();
-        }
 
         events[boardId].addListener(eventType.NEW_COMMENT, handleNewComment);
         events[boardId].addListener(
