@@ -94,7 +94,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       data: { stage: nextStage },
     });
 
-    changeStage(nextStage);
+    changeStage(params.boardId, nextStage);
 
     return json({ board });
   }
