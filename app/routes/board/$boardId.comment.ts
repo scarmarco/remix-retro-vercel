@@ -29,7 +29,7 @@ export const action: ActionFunction = async ({ request, params }) => {
       include: { childrens: true },
     });
 
-    newComment(comment);
+    newComment(params.boardId, comment);
 
     return json({ clearForm: true });
   }
@@ -57,7 +57,7 @@ export const action: ActionFunction = async ({ request, params }) => {
         include: { childrens: true },
       });
 
-      likeComment(comment);
+      likeComment(params.boardId, comment);
 
       return json({ voted: true });
     }
@@ -91,7 +91,7 @@ export const action: ActionFunction = async ({ request, params }) => {
           },
         });
 
-        groupComment(comment, childCommentId);
+        groupComment(params.boardId, comment, childCommentId);
 
         return json({ grouped: true });
       }
@@ -124,7 +124,7 @@ export const action: ActionFunction = async ({ request, params }) => {
           },
         });
 
-        ungroupComment(comment, childCommentId);
+        ungroupComment(params.boardId, comment, childCommentId);
 
         return json({ ungrouped: true });
       }

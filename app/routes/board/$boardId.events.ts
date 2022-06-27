@@ -1,10 +1,15 @@
 import type { LoaderFunction } from "@remix-run/node";
 import { Comment } from "@prisma/client";
+import invariant from "tiny-invariant";
+import { EventEmitter } from "node:events";
 import { events } from "~/services/board.server";
 import { eventType } from "~/utils";
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, params }) => {
+  invariant(params.boardId, "Expected params.boardId");
   if (!request.signal) return new Response(null, { status: 500 });
+
+  const { boardId } = params;
 
   return new Response(
     new ReadableStream({
@@ -63,23 +68,50 @@ export const loader: LoaderFunction = async ({ request }) => {
           if (closed) return;
           closed = true;
 
-          events.removeListener(eventType.NEW_COMMENT, handleNewComment);
-          events.removeListener(eventType.GROUP_COMMENT, handleGroupComment);
-          events.removeListener(
+          events[boardId].removeListener(
+            eventType.NEW_COMMENT,
+            handleNewComment
+          );
+          events[boardId].removeListener(
+            eventType.GROUP_COMMENT,
+            handleGroupComment
+          );
+          events[boardId].removeListener(
             eventType.UNGROUP_COMMENT,
             handleUngroupComment
           );
-          events.removeListener(eventType.LIKE_COMMENT, handleLikeComment);
-          events.removeListener(eventType.CHANGE_STAGE, handleChangeStage);
+          events[boardId].removeListener(
+            eventType.LIKE_COMMENT,
+            handleLikeComment
+          );
+          events[boardId].removeListener(
+            eventType.CHANGE_STAGE,
+            handleChangeStage
+          );
+
+          if (events[boardId].listenerCount(eventType.NEW_COMMENT) === 0) {
+            delete events[boardId];
+          }
+
           request.signal.removeEventListener("abort", close);
           controller.close();
         };
 
-        events.addListener(eventType.NEW_COMMENT, handleNewComment);
-        events.addListener(eventType.GROUP_COMMENT, handleGroupComment);
-        events.addListener(eventType.UNGROUP_COMMENT, handleUngroupComment);
-        events.addListener(eventType.LIKE_COMMENT, handleLikeComment);
-        events.addListener(eventType.CHANGE_STAGE, handleChangeStage);
+        if (!events[boardId]) {
+          events[boardId] = new EventEmitter();
+        }
+
+        events[boardId].addListener(eventType.NEW_COMMENT, handleNewComment);
+        events[boardId].addListener(
+          eventType.GROUP_COMMENT,
+          handleGroupComment
+        );
+        events[boardId].addListener(
+          eventType.UNGROUP_COMMENT,
+          handleUngroupComment
+        );
+        events[boardId].addListener(eventType.LIKE_COMMENT, handleLikeComment);
+        events[boardId].addListener(eventType.CHANGE_STAGE, handleChangeStage);
         request.signal.addEventListener("abort", close);
 
         if (request.signal.aborted) {
